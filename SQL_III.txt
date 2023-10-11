@@ -1,0 +1,178 @@
+---- SQL Aggregations
+
+---- NULL
+-- GC: NULL is not accounted for in Aggregations
+
+Notice that NULLs are different than a zero - they are cells where data does not exist.
+
+When identifying NULLs in a WHERE clause, we write IS NULL or IS NOT NULL. We don't use =, because NULL isn't considered a value in SQL. Rather, it is a property of the data.
+
+NULLs - Expert Tip
+There are two common ways in which you are likely to encounter NULLs:
+- NULLs frequently occur when performing a LEFT or RIGHT JOIN. You saw in the last lesson - when some rows in the left table of a left join are not matched with rows in the right table, those rows will contain some NULL values in the result set.
+- NULLs can also occur from simply missing data in our database.
+
+
+---- COUNT
+-- GC: Can be used with numbers and text columns
+-- GC: NULL is not accounted for in COUNT
+
+
+---- SUM
+-- GC: Treats NULL as zero
+-- GC: NULL is not accounted for in SUM
+
+Aggregation Questions
+
+Use the SQL environment below to find the solution for each of the following questions. If you get stuck or want to check your answers, you can find the answers at the top of the next concept.
+
+1. Find the total amount of poster_qty paper ordered in the orders table.
+2. Find the total amount of standard_qty paper ordered in the orders table.
+3. Find the total dollar amount of sales using the total_amt_usd in the orders table.
+4. Find the total amount spent on standard_amt_usd and gloss_amt_usd paper for each order in the orders table. This should give a dollar amount for each order in the table.
+5. Find the standard_amt_usd per unit of standard_qty paper. Your solution should use both an aggregation and a mathematical operator.
+
+-- Query 1
+SELECT SUM(poster_qty) AS total_poster_sales
+FROM orders;
+
+-- Query 2
+SELECT SUM(standard_qty) AS total_standard_sales
+FROM orders;
+
+-- Query 3
+SELECT SUM(total_amt_usd) AS total_dollar_sales
+FROM orders;
+
+-- Query 4
+SELECT id, (standard_amt_usd + gloss_amt_usd) AS total_expent_stnd_gloss
+FROM orders;
+
+-- Query 5
+SELECT SUM(standard_amt_usd)/SUM(standard_qty) AS standard_price_per_unit
+FROM orders;
+
+
+---- MIN & MAX
+-- GC: NULL is not accounted for in MIN & MAX
+
+Expert Tip:
+Functionally, MIN and MAX are similar to COUNT in that they can be used on non-numerical columns. Depending on the column type, MIN will return the lowest number, earliest date, or non-numerical value as early in the alphabet as possible. As you might suspect, MAX does the opposite—it returns the highest number, the latest date, or the non-numerical value closest alphabetically to “Z.”
+
+
+---- AVG
+-- GC: NULL is not accounted for in AVG, so be carefull if zeros must be treated as zeros in the dataset
+
+Similar to other software AVG returns the mean of the data - that is the sum of all of the values in the column divided by the number of values in a column. This aggregate function again ignores the NULL values in both the numerator and the denominator.
+
+If you want to count NULLs as zero, you will need to use SUM and COUNT. However, this is probably not a good idea if the NULL values truly just represent unknown values for a cell.
+MEDIAN - Expert Tip
+
+One quick note that a median might be a more appropriate measure of center for this data, but finding the median happens to be a pretty difficult thing to get using SQL alone — so difficult that finding a median is occasionally asked as an interview question.
+
+1. When was the earliest order ever placed? You only need to return the date.
+-- Query 1
+SELECT MIN(occurred_at) AS earliestOrder
+FROM orders;
+
+2. Try performing the same query as in question 1 without using an aggregation function.
+-- Query 2
+SELECT occurred_at
+FROM orders
+ORDER BY occurred_at
+LIMIT 1;
+
+3. When did the most recent (latest) web_event occur?
+-- Query 3
+SELECT MAX(occurred_at) AS latestWebEvent
+FROM web_events;
+
+4. Try to perform the result of the previous query without using an aggregation function.
+-- Query 4
+SELECT occurred_at
+FROM web_events
+ORDER BY occurred_at DESC
+LIMIT 1;
+
+5. Find the mean (AVERAGE) amount spent per order on each paper type, as well as the mean amount of each paper type purchased per order. Your final answer should have 6 values - one for each paper type for the average number of sales, as well as the average amount.
+-- Query 5
+SELECT 
+    AVG(standard_qty) mean_standard, AVG(gloss_qty) mean_gloss,
+    AVG(poster_qty) mean_poster,
+    AVG(standard_amt_usd) mean_standard_usd, 
+    AVG(gloss_amt_usd) mean_gloss_usd, 
+    AVG(poster_amt_usd) mean_poster_usd
+FROM orders;
+
+6. Via the video, you might be interested in how to calculate the MEDIAN. Though this is more advanced than what we have covered so far try finding - what is the MEDIAN total_usd spent on all orders?
+-- Query 6
+SELECT *
+FROM (SELECT total_amt_usd
+      FROM orders
+      ORDER BY total_amt_usd
+      LIMIT 3457) AS Table1
+ORDER BY total_amt_usd DESC
+LIMIT 2;
+
+
+---- GROUP BY
+- GROUP BY can be used to aggregate data within subsets of the data. For example, grouping for different accounts, different regions, or different sales representatives.
+- Any column in the SELECT statement that is not within an aggregator must be in the GROUP BY clause.
+- The GROUP BY always goes between WHERE and ORDER BY.
+- ORDER BY works like SORT in spreadsheet software.
+
+GROUP BY - Expert Tip:
+Before we dive deeper into aggregations using GROUP BY statements, it is worth noting that SQL evaluates the aggregations before the LIMIT clause. If you don’t group by any columns, you’ll get a 1-row result—no problem there. If you group by a column with enough unique values that it exceeds the LIMIT number, the aggregates will be calculated, and then some rows will simply be omitted from the results.
+This is actually a nice way to do things because you know you’re going to get the correct aggregates. If SQL cuts the table down to 100 rows, then performed the aggregations, your results would be substantially different.
+
+1. Which account (by name) placed the earliest order? Your solution should have the account name and the date of the order.
+-- Query 1
+
+
+2. Find the total sales in usd for each account. You should include two columns - the total sales for each company's orders in usd and the company name.
+-- Query 2
+
+
+3. Via what channel did the most recent (latest) web_event occur, which account was associated with this web_event? Your query should return only three values - the date, channel, and account name.
+-- Query 3
+
+
+4. Find the total number of times each type of channel from the web_events was used. Your final table should have two columns - the channel and the number of times the channel was used.
+-- Query 4
+
+
+5. Who was the primary contact associated with the earliest web_event?
+-- Query 5
+
+
+6. What was the smallest order placed by each account in terms of total usd. Provide only two columns - the account name and the total usd. Order from smallest dollar amounts to largest.
+-- Query 6
+
+
+7. Find the number of sales reps in each region. Your final table should have two columns - the region and the number of sales_reps. Order from fewest reps to most reps.
+-- Query 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

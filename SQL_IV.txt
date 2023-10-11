@@ -1,0 +1,58 @@
+---- SQL Subqueries and Temporary Tables
+ We want to find the average number of events for each day for each channel. The first table will provide us the number of events for each day and channel, and then we will need to average these values together using a second query.
+
+-- Query 1 (full)
+SELECT 
+    DATE_TRUNC('day', day) AS day_event, 
+    channel, 
+    AVG(event_count) AS event_avg
+FROM
+  (SELECT 
+       DATE_TRUNC('day', occurred_at) AS day, 
+       channel, COUNT(*) AS event_count
+   FROM web_events
+   GROUP BY day, channel) AS event_table
+GROUP BY day_event, channel
+ORDER BY event_avg DESC;
+
+-- Query 1 (question 1)
+SELECT
+    DATE_TRUNC('day', occurred_at) AS day, 
+    channel, COUNT(*) AS event_count
+FROM web_events
+GROUP BY day, channel
+ORDER BY event_count DESC;
+
+-- Query 2
+SELECT 
+    channel, 
+    AVG(event_count) AS event_avg
+FROM
+  (SELECT 
+        DATE_TRUNC('day', occurred_at) AS day, 
+        channel, COUNT(*) AS event_count
+   FROM web_events
+   GROUP BY day, channel) AS event_table
+GROUP BY channel
+ORDER BY event_avg DESC;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
